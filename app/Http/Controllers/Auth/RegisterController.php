@@ -28,7 +28,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/client/profile'; // Cambiado de '/home' a '/client/profile' para Pilotos
 
     /**
      * Create a new controller instance.
@@ -51,6 +51,8 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'document_number' => ['required', 'string', 'unique:users'], // Agregado, obligatorio y único
+            'phone' => ['nullable', 'string', 'min:10'], // Agregado, opcional con longitud mínima
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
     }
@@ -66,8 +68,10 @@ class RegisterController extends Controller
         return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'document_number' => $data['document_number'], // Obligatorio vía validación
+            'phone' => $data['phone'] ?? null, // Opcional, nullable en la base de datos
+            'role_id' => 2, // Asignado como Piloto (role_id=2)
             'password' => Hash::make($data['password']),
-            'document_number' => $data['document_number'] ?? 'default', // Valor por defecto o del formulario
         ]);
     }
 }

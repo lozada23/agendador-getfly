@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ExportController;
+use App\Http\Controllers\Company\CompanyController;
 use App\Http\Controllers\RoomController;
 
 /*
@@ -37,9 +38,9 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Rutas de registro
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
+// Rutas de registro (restringido a Pilotos)
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register')->middleware('guest');
+Route::post('/register', [RegisterController::class, 'register'])->middleware('guest');
 
 // Rutas de recuperación de contraseña
 Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
@@ -50,8 +51,8 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name(
 // Webhook de ePayco
 Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 
-// Rutas de Cliente
-Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
+// Rutas de Piloto (Cliente)
+Route::middleware(['auth', 'role:pilot'])->prefix('client')->name('client.')->group(function () {
     // Perfil
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -75,7 +76,7 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
 });
 
 // Rutas de Administrador
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -93,6 +94,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Exportación de datos
     Route::get('/export', [ExportController::class, 'index'])->name('export.index');
     Route::post('/export/bookings', [ExportController::class, 'bookings'])->name('export.bookings');
+});
+
+// Rutas de Empresa/Instituto
+Route::middleware(['auth', 'role:company'])->prefix('company')->name('company.')->group(function () {
+    Route::get('/students', [CompanyController::class, 'students'])->name('students');
+    Route::post('/students', [CompanyController::class, 'storeStudent'])->name('students.store');
+    Route::get('/bookings', [CompanyController::class, 'bookings'])->name('bookings');
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
