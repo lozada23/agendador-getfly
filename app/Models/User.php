@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -13,22 +12,19 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Los atributos que se pueden asignar masivamente.
      */
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
-        'document_number',  // Agregar esta línea
-        'role_id',          // Agregar esta línea
+        'document_number',
+        'role_id',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * Los atributos que deben ocultarse para arrays.
      */
     protected $hidden = [
         'password',
@@ -36,12 +32,26 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * Los atributos que deben ser convertidos a tipos nativos.
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Relación con el modelo Role.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Relación con las reservas del usuario.
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

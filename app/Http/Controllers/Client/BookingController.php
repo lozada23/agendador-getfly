@@ -28,8 +28,13 @@ class BookingController extends Controller
      */
     public function index()
     {
-        $bookings = Auth::user()->bookings()->orderBy('created_at', 'desc')->paginate(10);
-        return view('client.bookings.index', compact('bookings'));
+        $bookings = Auth::user()
+            ->bookings()
+            ->with('schedule.course') // Cargar relaciones necesarias
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('pilot.bookings.index', compact('bookings'));
     }
 
     /**
@@ -37,15 +42,14 @@ class BookingController extends Controller
      */
     public function create(Course $course)
     {
-        // Obtener horarios disponibles para el curso
         $schedules = Schedule::where('course_id', $course->id)
-                            ->where('date', '>=', now()->format('Y-m-d'))
-                            ->where('available_slots', '>', 0)
-                            ->orderBy('date')
-                            ->orderBy('start_time')
-                            ->get();
-        
-        return view('client.bookings.create', compact('course', 'schedules'));
+            ->where('date', '>=', now()->format('Y-m-d'))
+            ->where('available_slots', '>', 0)
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get();
+
+        return view('pilot.bookings.create', compact('course', 'schedules'));
     }
 
     /**
@@ -60,12 +64,11 @@ class BookingController extends Controller
         try {
             $user = Auth::user();
             $schedule = Schedule::findOrFail($request->schedule_id);
-            
+
             // Crear la reserva usando el servicio
             $booking = $this->bookingService->createBooking($user, $schedule);
-            
-            // Redireccionar a la página de pago
-            return redirect()->route('client.payment.show', $booking);
+
+            return redirect()->route('pilot.payment.show', $booking);
         } catch (\Exception $e) {
             return back()->withErrors(['message' => $e->getMessage()]);
         }
@@ -76,38 +79,34 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
-        // Verificar que la reserva pertenezca al usuario autenticado
         if ($booking->user_id !== Auth::id()) {
             abort(403);
         }
-        
-        return view('client.bookings.show', compact('booking'));
+
+        return view('pilot.bookings.show', compact('booking'));
     }
+
 
     /**
      * Descargar PDF de confirmación de reserva
      */
     public function downloadPdf(Booking $booking)
     {
-        // Verificar que la reserva pertenezca al usuario autenticado
         if ($booking->user_id !== Auth::id()) {
             abort(403);
         }
-        
-        // Verificar que la reserva esté confirmada
+
         if ($booking->status !== 'confirmed') {
             return back()->withErrors(['message' => 'Solo se pueden descargar PDFs para reservas confirmadas.']);
         }
-        
+
         try {
-            // Obtener la ruta del PDF
             $pdfPath = $this->pdfService->getBookingPdfPath($booking);
-            
+
             if (!$pdfPath || !Storage::exists($pdfPath)) {
                 return back()->withErrors(['message' => 'No se pudo generar el PDF de confirmación.']);
             }
-            
-            // Descargar el archivo
+
             return Storage::download($pdfPath, 'reserva_' . $booking->booking_code . '.pdf');
         } catch (\Exception $e) {
             return back()->withErrors(['message' => $e->getMessage()]);

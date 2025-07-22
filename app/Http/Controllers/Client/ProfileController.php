@@ -15,7 +15,7 @@ class ProfileController extends Controller
     public function show()
     {
         $user = Auth::user();
-        return view('client.profile.show', compact('user'));
+        return view('pilot.profile', compact('user'));
     }
 
     /**
@@ -52,6 +52,6 @@ class ProfileController extends Controller
         
         $user->save();
         
-        return redirect()->route('client.profile')->with('success', 'Perfil actualizado correctamente.');
+        return redirect()->route('pilot.profile')->with('success', 'Perfil actualizado correctamente.');
     }
 }

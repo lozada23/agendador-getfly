@@ -33,7 +33,7 @@ class CourseController extends Controller
         // Paginar resultados
         $courses = $query->paginate(12);
         
-        return view('client.courses.index', compact('courses'));
+        return view('pilot.courses.index', compact('courses'));
     }
 
     /**
@@ -49,6 +49,6 @@ class CourseController extends Controller
                           ->orderBy('start_time')
                           ->get();
         
-        return view('client.courses.show', compact('course', 'schedules'));
+        return view('pilot.courses.show', compact('course', 'schedules'));
     }
 }

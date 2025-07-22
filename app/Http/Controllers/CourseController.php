@@ -1,64 +1,51 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Models\Course;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
+     * Muestra el formulario para crear un curso.
      */
     public function create()
     {
-        //
+        return view('admin.courses.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Guarda un nuevo curso en la base de datos.
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|min:3',
+            'description' => 'nullable',
+            'duration' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+            'type' => 'required|in:course,simulator',
+        ]);
+
+        Course::create($request->all());
+
+        return redirect()->route('admin.courses.index')->with('success', 'Curso creado correctamente.');
     }
 
     /**
-     * Display the specified resource.
+     * Lista los cursos.
      */
-    public function show(string $id)
+    public function index()
     {
-        //
+        $courses = Course::all();
+        return view('admin.courses.index', compact('courses'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    // Los siguientes métodos se completan más adelante
+    public function show($id) {}
+    public function edit($id) {}
+    public function update(Request $request, $id) {}
+    public function destroy($id) {}
 }
